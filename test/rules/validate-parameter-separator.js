@@ -14,7 +14,7 @@ describe('rules/validate-parameter-separator', function() {
             ',',
             ' ,',
             ', ',
-            ' , ',
+            ' , '
         ];
 
         validSeparators.forEach(function(sep) {
@@ -30,7 +30,7 @@ describe('rules/validate-parameter-separator', function() {
             ',x',
             'x,x',
             '  ,',
-            ',  ',
+            ',  '
         ];
 
         invalidSeparators.forEach(function(sep) {
@@ -40,7 +40,7 @@ describe('rules/validate-parameter-separator', function() {
         });
     });
 
-    describe('(comma)', function() {
+    describe.only('(comma)', function() {
         beforeEach(function() {
             checker.configure({ validateParameterSeparator: ',' });
         });
