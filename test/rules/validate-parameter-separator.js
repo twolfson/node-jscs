@@ -40,7 +40,7 @@ describe('rules/validate-parameter-separator', function() {
         });
     });
 
-    describe.only('(comma)', function() {
+    describe('(comma)', function() {
         beforeEach(function() {
             checker.configure({ validateParameterSeparator: ',' });
         });
