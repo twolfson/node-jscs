@@ -5,6 +5,15 @@ var JsFile = require('../lib/js-file');
 var TokenAssert = require('../lib/token-assert');
 
 describe('modules/token-assert', function() {
+
+    function createJsFile(sources) {
+        return new JsFile(
+            'example.js',
+            sources,
+            esprima.parse(sources, {loc: true, range: true, comment: true, tokens: true})
+        );
+    }
+
     describe('whitespaceBetween', function() {
         it('should trigger error on missing whitespace between tokens', function() {
             var file = createJsFile('x=y;');
@@ -114,7 +123,7 @@ describe('modules/token-assert', function() {
                 message: 'Custom message'
             });
 
-            assert(onError.getCall(0).args[0].message, 'Custom message');
+            assert.equal(onError.getCall(0).args[0].message, 'Custom message');
         });
     });
 
@@ -208,15 +217,247 @@ describe('modules/token-assert', function() {
                 message: 'Custom message'
             });
 
-            assert(onError.getCall(0).args[0].message, 'Custom message');
+            assert.equal(onError.getCall(0).args[0].message, 'Custom message');
         });
     });
 
-    function createJsFile(sources) {
-        return new JsFile(
-            'example.js',
-            sources,
-            esprima.parse(sources, {loc: true, range: true, comment: true, tokens: true})
-        );
-    }
+    describe('sameLine', function() {
+        it('should trigger error on unexpected newline between tokens', function() {
+            var file = createJsFile('x\n=y;');
+
+            var tokenAssert = new TokenAssert(file);
+            var onError = sinon.spy();
+            tokenAssert.on('error', onError);
+
+            var tokens = file.getTokens();
+            tokenAssert.sameLine({
+                token: tokens[0],
+                nextToken: tokens[1]
+            });
+
+            assert(onError.calledOnce);
+
+            var error = onError.getCall(0).args[0];
+            assert.equal(error.message, 'x and = should be on the same line');
+            assert.equal(error.line, 1);
+            assert.equal(error.column, 1);
+        });
+
+        it('should not trigger error on missing newline between tokens', function() {
+            var file = createJsFile('x=y;');
+
+            var tokenAssert = new TokenAssert(file);
+            var onError = sinon.spy();
+            tokenAssert.on('error', onError);
+
+            var tokens = file.getTokens();
+            tokenAssert.sameLine({
+                token: tokens[0],
+                nextToken: tokens[1]
+            });
+
+            assert(!onError.calledOnce);
+        });
+
+        it('should accept message for unexpected newline between tokens', function() {
+            var file = createJsFile('x\n=y;');
+
+            var tokenAssert = new TokenAssert(file);
+            var onError = sinon.spy();
+            tokenAssert.on('error', onError);
+
+            var tokens = file.getTokens();
+            tokenAssert.sameLine({
+                token: tokens[0],
+                nextToken: tokens[1],
+                message: 'Custom message'
+            });
+
+            assert.equal(onError.getCall(0).args[0].message, 'Custom message');
+        });
+    });
+
+    describe('differentLine', function() {
+        it('should trigger error on missing newline between tokens', function() {
+            var file = createJsFile('x=y;');
+
+            var tokenAssert = new TokenAssert(file);
+            var onError = sinon.spy();
+            tokenAssert.on('error', onError);
+
+            var tokens = file.getTokens();
+            tokenAssert.differentLine({
+                token: tokens[0],
+                nextToken: tokens[1]
+            });
+
+            assert(onError.calledOnce);
+
+            var error = onError.getCall(0).args[0];
+            assert.equal(error.message, 'x and = should be on different lines');
+            assert.equal(error.line, 1);
+            assert.equal(error.column, 1);
+        });
+
+        it('should not trigger error on existing newline between tokens', function() {
+            var file = createJsFile('x\n=y;');
+
+            var tokenAssert = new TokenAssert(file);
+            var onError = sinon.spy();
+            tokenAssert.on('error', onError);
+
+            var tokens = file.getTokens();
+            tokenAssert.differentLine({
+                token: tokens[0],
+                nextToken: tokens[1]
+            });
+
+            assert(!onError.calledOnce);
+        });
+
+        it('should accept message for missing newline between tokens', function() {
+            var file = createJsFile('x=y;');
+
+            var tokenAssert = new TokenAssert(file);
+            var onError = sinon.spy();
+            tokenAssert.on('error', onError);
+
+            var tokens = file.getTokens();
+            tokenAssert.differentLine({
+                token: tokens[0],
+                nextToken: tokens[1],
+                message: 'Custom message'
+            });
+
+            assert.equal(onError.getCall(0).args[0].message, 'Custom message');
+        });
+    });
+
+    describe('tokenBefore', function() {
+        it('should trigger error on missing token before', function() {
+            var file = createJsFile('x=y;');
+
+            var tokenAssert = new TokenAssert(file);
+            var onError = sinon.spy();
+            tokenAssert.on('error', onError);
+
+            var tokens = file.getTokens();
+            tokenAssert.tokenBefore({
+                token: tokens[1],
+                expectedTokenBefore: {
+                    type: 'Identifier',
+                    value: 'z'
+                }
+            });
+
+            assert(onError.calledOnce);
+
+            var error = onError.getCall(0).args[0];
+            assert.equal(error.message, 'z was expected before = but x found');
+            assert.equal(error.line, 1);
+            assert.equal(error.column, 1);
+        });
+
+        it('should not trigger error on correct token before', function() {
+            var file = createJsFile('x=y;');
+
+            var tokenAssert = new TokenAssert(file);
+            var onError = sinon.spy();
+            tokenAssert.on('error', onError);
+
+            var tokens = file.getTokens();
+            tokenAssert.tokenBefore({
+                token: tokens[1],
+                expectedTokenBefore: {
+                    type: 'Identifier',
+                    value: 'x'
+                }
+            });
+
+            assert(!onError.calledOnce);
+        });
+
+        it('should accept message for missing token before', function() {
+            var file = createJsFile('x=y;');
+
+            var tokenAssert = new TokenAssert(file);
+            var onError = sinon.spy();
+            tokenAssert.on('error', onError);
+
+            var tokens = file.getTokens();
+            tokenAssert.tokenBefore({
+                token: tokens[1],
+                expectedTokenBefore: {
+                    type: 'Identifier',
+                    value: 'z'
+                },
+                message: 'Custom message'
+            });
+            assert.equal(onError.getCall(0).args[0].message, 'Custom message');
+        });
+    });
+
+    describe('noTokenBefore', function() {
+        it('should trigger error on illegal token before', function() {
+            var file = createJsFile('x=y;');
+
+            var tokenAssert = new TokenAssert(file);
+            var onError = sinon.spy();
+            tokenAssert.on('error', onError);
+
+            var tokens = file.getTokens();
+            tokenAssert.noTokenBefore({
+                token: tokens[1],
+                expectedTokenBefore: {
+                    type: 'Identifier',
+                    value: 'x'
+                }
+            });
+
+            assert(onError.calledOnce);
+
+            var error = onError.getCall(0).args[0];
+            assert.equal(error.message, 'Illegal x was found before =');
+            assert.equal(error.line, 1);
+            assert.equal(error.column, 1);
+        });
+
+        it('should not trigger error on missing token before', function() {
+            var file = createJsFile('x=y;');
+
+            var tokenAssert = new TokenAssert(file);
+            var onError = sinon.spy();
+            tokenAssert.on('error', onError);
+
+            var tokens = file.getTokens();
+            tokenAssert.noTokenBefore({
+                token: tokens[1],
+                expectedTokenBefore: {
+                    type: 'Identifier',
+                    value: 'z'
+                }
+            });
+
+            assert(!onError.calledOnce);
+        });
+
+        it('should accept message for illegal token before', function() {
+            var file = createJsFile('x=y;');
+
+            var tokenAssert = new TokenAssert(file);
+            var onError = sinon.spy();
+            tokenAssert.on('error', onError);
+
+            var tokens = file.getTokens();
+            tokenAssert.noTokenBefore({
+                token: tokens[1],
+                expectedTokenBefore: {
+                    type: 'Identifier',
+                    value: 'x'
+                },
+                message: 'Custom message'
+            });
+            assert.equal(onError.getCall(0).args[0].message, 'Custom message');
+        });
+    });
 });
