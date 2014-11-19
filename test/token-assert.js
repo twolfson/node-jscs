@@ -91,6 +91,28 @@ describe('modules/token-assert', function() {
             assert.equal(error.column, 1);
         });
 
+        it('should trigger error on newline between tokens', function() {
+            var file = createJsFile('x\n=y;');
+
+            var tokenAssert = new TokenAssert(file);
+            var onError = sinon.spy();
+            tokenAssert.on('error', onError);
+
+            var tokens = file.getTokens();
+            tokenAssert.whitespaceBetween({
+                token: tokens[0],
+                nextToken: tokens[1],
+                spaces: 2
+            });
+
+            assert(onError.calledOnce);
+
+            var error = onError.getCall(0).args[0];
+            assert.equal(error.message, '2 spaces required between x and =');
+            assert.equal(error.line, 1);
+            assert.equal(error.column, 1);
+        });
+
         it('should not trigger error on valid space count between tokens', function() {
             var file = createJsFile('x   =   y;');
 
@@ -334,7 +356,7 @@ describe('modules/token-assert', function() {
     });
 
     describe('tokenBefore', function() {
-        it('should trigger error on missing token before', function() {
+        it('should trigger error on missing token value before', function() {
             var file = createJsFile('x=y;');
 
             var tokenAssert = new TokenAssert(file);
@@ -354,6 +376,30 @@ describe('modules/token-assert', function() {
 
             var error = onError.getCall(0).args[0];
             assert.equal(error.message, 'z was expected before = but x found');
+            assert.equal(error.line, 1);
+            assert.equal(error.column, 1);
+        });
+
+        it('should trigger error on missing token type before', function() {
+            var file = createJsFile('x=y;');
+
+            var tokenAssert = new TokenAssert(file);
+            var onError = sinon.spy();
+            tokenAssert.on('error', onError);
+
+            var tokens = file.getTokens();
+            tokenAssert.tokenBefore({
+                token: tokens[1],
+                expectedTokenBefore: {
+                    type: 'Keyword',
+                    value: 'x'
+                }
+            });
+
+            assert(onError.calledOnce);
+
+            var error = onError.getCall(0).args[0];
+            assert.equal(error.message, 'x (Keyword) was expected before = but x (Identifier) found');
             assert.equal(error.line, 1);
             assert.equal(error.column, 1);
         });
@@ -398,7 +444,7 @@ describe('modules/token-assert', function() {
     });
 
     describe('noTokenBefore', function() {
-        it('should trigger error on illegal token before', function() {
+        it('should trigger error on illegal token value before', function() {
             var file = createJsFile('x=y;');
 
             var tokenAssert = new TokenAssert(file);
@@ -422,7 +468,7 @@ describe('modules/token-assert', function() {
             assert.equal(error.column, 1);
         });
 
-        it('should not trigger error on missing token before', function() {
+        it('should not trigger error on missing token value before', function() {
             var file = createJsFile('x=y;');
 
             var tokenAssert = new TokenAssert(file);
@@ -435,6 +481,25 @@ describe('modules/token-assert', function() {
                 expectedTokenBefore: {
                     type: 'Identifier',
                     value: 'z'
+                }
+            });
+
+            assert(!onError.calledOnce);
+        });
+
+        it('should not trigger error on missing token type before', function() {
+            var file = createJsFile('x=y;');
+
+            var tokenAssert = new TokenAssert(file);
+            var onError = sinon.spy();
+            tokenAssert.on('error', onError);
+
+            var tokens = file.getTokens();
+            tokenAssert.noTokenBefore({
+                token: tokens[1],
+                expectedTokenBefore: {
+                    type: 'Keyword',
+                    value: 'x'
                 }
             });
 
