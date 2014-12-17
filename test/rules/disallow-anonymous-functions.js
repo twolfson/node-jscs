@@ -4,11 +4,13 @@ var assert = require('assert');
 describe('rules/disallow-anonymous-functions', function() {
     var checker;
 
+    beforeEach(function() {
+        checker = new Checker();
+        checker.registerDefaultRules();
+    });
+
     describe('option value true', function() {
         beforeEach(function() {
-            checker = new Checker();
-            checker.registerDefaultRules();
-
             checker.configure({
                 disallowAnonymousFunctions: true
             });
