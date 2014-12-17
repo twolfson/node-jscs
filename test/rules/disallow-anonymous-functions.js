@@ -54,6 +54,7 @@ describe('rules/disallow-anonymous-functions', function() {
         });
 
         it('should not report on excepted anonymous function declarations', function() {
+            console.log(checker.checkString('before(function(){});')._errorList);
             assert(checker.checkString('it(\'is an exception\', function(){});').isEmpty());
         });
 
