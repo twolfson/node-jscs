@@ -54,8 +54,11 @@ describe('rules/disallow-anonymous-functions', function() {
         });
 
         it('should not report on excepted anonymous function declarations', function() {
-            console.log(checker.checkString('before(function(){});')._errorList);
             assert(checker.checkString('it(\'is an exception\', function(){});').isEmpty());
+        });
+
+        it('should not report on excepted properties that are anonymous function declarations', function() {
+            assert(checker.checkString('suite.it(\'is an exception\', function(){});').isEmpty());
         });
 
         it('should not report on named function declarations', function() {
