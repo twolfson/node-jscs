@@ -48,6 +48,7 @@ html, body {
 
 .team-member dd {
     float: left;
+    margin-left: 30px;
 }
 
 .team-member-role {
