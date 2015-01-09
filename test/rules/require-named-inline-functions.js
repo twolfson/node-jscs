@@ -20,7 +20,7 @@ describe('rules/require-named-inline-functions', function() {
             assert(checker.checkString('$("hi").click(function(){});').getErrorCount() === 1);
         });
 
-        it('should not report named inline function expressions by left-hand assignment', function() {
+        it('should not report on inline function expressions named by left-hand assignment', function() {
             assert(checker.checkString('var x = function(){};').isEmpty());
             assert(checker.checkString('var foo = {bar: function() {}};').isEmpty());
             assert(checker.checkString('foo.bar = function() {};').isEmpty());
@@ -30,9 +30,14 @@ describe('rules/require-named-inline-functions', function() {
             assert(checker.checkString('function named(){};').isEmpty());
         });
 
-        it('should not report on named function expressions', function() {
+        it('should not report on named inline function expressions', function() {
             assert(checker.checkString('$("hi").click(function named(){});').isEmpty());
+        });
+
+        it('should not report on double named inline function expressions', function() {
             assert(checker.checkString('var x = function named(){};').isEmpty());
+            assert(checker.checkString('var foo = {bar: function named() {}};').isEmpty());
+            assert(checker.checkString('foo.bar = function named() {};').isEmpty());
         });
     });
 
@@ -49,7 +54,7 @@ describe('rules/require-named-inline-functions', function() {
             assert(checker.checkString('$("hi").click(function(){});').getErrorCount() === 1);
         });
 
-        it('should not report named inline function expressions by left-hand assignment', function() {
+        it('should not report on inline function expressions named by left-hand assignment', function() {
             assert(checker.checkString('var x = function(){};').isEmpty());
             assert(checker.checkString('var foo = {bar: function() {}};').isEmpty());
             assert(checker.checkString('foo.bar = function() {};').isEmpty());
@@ -59,12 +64,16 @@ describe('rules/require-named-inline-functions', function() {
             assert(checker.checkString('function named(){};').isEmpty());
         });
 
-        it('should not report on named function expressions', function() {
+        it('should not report on named inline function expressions', function() {
             assert(checker.checkString('$("hi").click(function named(){});').isEmpty());
-            assert(checker.checkString('var x = function named(){};').isEmpty());
         });
 
-        // TODO: How to handle `forEach`? (maybe as a method option type)
+        it('should not report on double named inline function expressions', function() {
+            assert(checker.checkString('var x = function named(){};').isEmpty());
+            assert(checker.checkString('var foo = {bar: function named() {}};').isEmpty());
+            assert(checker.checkString('foo.bar = function named() {};').isEmpty());
+        });
+
         it('should not report on excepted unnamed function expressions', function() {
             assert(checker.checkString('it(function (){});').isEmpty());
             assert(checker.checkString('it.skip(function () {});').isEmpty());
