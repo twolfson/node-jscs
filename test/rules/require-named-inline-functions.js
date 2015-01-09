@@ -76,5 +76,10 @@ describe('rules/require-named-inline-functions', function() {
         it('should not report on excepted unnamed using other notation', function() {
             assert(checker.checkString('it[\'skip\'](function () {});').isEmpty());
         });
+
+        it('doesn\'t explode on literals/constructors', function() {
+            assert(checker.checkString('[0].forEach(function () {});').isEmpty());
+            assert(checker.checkString('(new Item()).forEach(function () {});').isEmpty());
+        });
     });
 });
