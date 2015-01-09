@@ -36,7 +36,7 @@ describe('rules/require-named-inline-functions', function() {
         });
     });
 
-    describe('option value true', function() {
+    describe.skip('option value allExcept', function() {
         beforeEach(function() {
             checker.configure({
                 requireNamedInlineFunctions: {
