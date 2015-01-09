@@ -69,6 +69,7 @@ describe('rules/require-named-inline-functions', function() {
             assert(checker.checkString('it(function (){});').isEmpty());
             // assert(checker.checkString('it.skip(function () {});').isEmpty());
             // assert(checker.checkString('x.y.z(function () {});').isEmpty());
+            // assert(checker.checkString('x[0]z(function () {});').isEmpty());
         });
 
         it.skip('should not report on excepted unnamed using other notation', function() {
