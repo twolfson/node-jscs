@@ -1,7 +1,7 @@
 var Checker = require('../../lib/checker');
 var assert = require('assert');
 
-describe('rules/disallow-named-inline-functions', function() {
+describe('rules/disallow-named-unassigned-functions', function() {
     var checker;
 
     beforeEach(function() {
@@ -12,15 +12,15 @@ describe('rules/disallow-named-inline-functions', function() {
     describe('option value true', function() {
         beforeEach(function() {
             checker.configure({
-                disallowNamedInlineFunctions: true
+                disallowNamedUnassignedFunctions: true
             });
         });
 
-        it('should not report on unnamed inline function declarations', function() {
+        it('should not report on unnamed unassigned function expressions', function() {
             assert(checker.checkString('$("hi").click(function(){});').isEmpty());
         });
 
-        it('should report on named inline function expressions', function() {
+        it('should report on named unassigned function expressions', function() {
             assert(checker.checkString('$("hi").click(function named(){});').getErrorCount() === 1);
         });
 
@@ -28,7 +28,7 @@ describe('rules/disallow-named-inline-functions', function() {
             assert(checker.checkString('function named(){};').isEmpty());
         });
 
-        it('should not report on function expressions in assignments', function() {
+        it('should not report on assigned function expressions', function() {
             assert(checker.checkString('var x = function(){};').isEmpty());
             assert(checker.checkString('var foo = {bar: function() {}};').isEmpty());
             assert(checker.checkString('foo.bar = function() {};').isEmpty());

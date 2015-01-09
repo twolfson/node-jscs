@@ -1,7 +1,7 @@
 var Checker = require('../../lib/checker');
 var assert = require('assert');
 
-describe('rules/require-named-inline-functions', function() {
+describe('rules/require-named-unassigned-functions', function() {
     var checker;
 
     beforeEach(function() {
@@ -12,15 +12,15 @@ describe('rules/require-named-inline-functions', function() {
     describe('option value true', function() {
         beforeEach(function() {
             checker.configure({
-                requireNamedInlineFunctions: true
+                requireNamedUnassignedFunctions: true
             });
         });
 
-        it('should report on unnamed inline function declarations', function() {
+        it('should report on unnamed unassigned function expressions', function() {
             assert(checker.checkString('$("hi").click(function(){});').getErrorCount() === 1);
         });
 
-        it('should not report on named inline function expressions', function() {
+        it('should not report on named unassigned function expressions', function() {
             assert(checker.checkString('$("hi").click(function named(){});').isEmpty());
         });
 
@@ -41,17 +41,17 @@ describe('rules/require-named-inline-functions', function() {
     describe('option value allExcept', function() {
         beforeEach(function() {
             checker.configure({
-                requireNamedInlineFunctions: {
+                requireNamedUnassignedFunctions: {
                     allExcept: ['it', 'it.skip', 'x.y.z', 'x[1]', 'x[0].z']
                 }
             });
         });
 
-        it('should report on unnamed inline function declarations', function() {
+        it('should report on unnamed unassigned function expressions', function() {
             assert(checker.checkString('$("hi").click(function(){});').getErrorCount() === 1);
         });
 
-        it('should not report on named inline function expressions', function() {
+        it('should not report on named unassigned function expressions', function() {
             assert(checker.checkString('$("hi").click(function named(){});').isEmpty());
         });
 
