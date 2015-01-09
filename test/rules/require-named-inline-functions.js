@@ -12,7 +12,7 @@ describe('rules/require-named-inline-functions', function() {
     describe('option value true', function() {
         beforeEach(function() {
             checker.configure({
-                requireStackNamedFunctions: true
+                requireNamedInlineFunctions: true
             });
         });
 
