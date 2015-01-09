@@ -77,7 +77,7 @@ describe('rules/require-named-inline-functions', function() {
             assert(checker.checkString('it[\'skip\'](function () {});').isEmpty());
         });
 
-        it.skip('doesn\'t explode on literals/constructors', function() {
+        it('doesn\'t explode on literals/constructors', function() {
             assert(checker.checkString('[0].forEach(function () {});').getErrorCount() === 1);
             assert(checker.checkString('(new Item()).forEach(function () {});').getErrorCount() === 1);
         });
