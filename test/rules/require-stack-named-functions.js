@@ -23,6 +23,7 @@ describe('rules/require-stack-named-functions', function() {
         it('should not report on stack-named function expressions by left-hand assignment', function() {
             assert(checker.checkString('var x = function(){};').isEmpty());
             assert(checker.checkString('var foo = {bar: function() {}};').isEmpty());
+            assert(checker.checkString('foo.bar = function() {};').isEmpty());
         });
 
         it('should not report on named function declarations', function() {
