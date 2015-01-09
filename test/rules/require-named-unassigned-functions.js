@@ -28,7 +28,7 @@ describe('rules/require-named-unassigned-functions', function() {
             assert(checker.checkString('function named(){};').isEmpty());
         });
 
-        it('should not report on function expressions in assignments', function() {
+        it('should not report on assigned function expressions', function() {
             assert(checker.checkString('var x = function(){};').isEmpty());
             assert(checker.checkString('var foo = {bar: function() {}};').isEmpty());
             assert(checker.checkString('foo.bar = function() {};').isEmpty());
@@ -59,7 +59,7 @@ describe('rules/require-named-unassigned-functions', function() {
             assert(checker.checkString('function named(){};').isEmpty());
         });
 
-        it('should not report on function expressions in assignments', function() {
+        it('should not report on assigned function expressions', function() {
             assert(checker.checkString('var x = function(){};').isEmpty());
             assert(checker.checkString('var foo = {bar: function() {}};').isEmpty());
             assert(checker.checkString('foo.bar = function() {};').isEmpty());
@@ -68,7 +68,7 @@ describe('rules/require-named-unassigned-functions', function() {
             assert(checker.checkString('foo.bar = function named() {};').isEmpty());
         });
 
-        it('should not report on excepted unnamed function expressions', function() {
+        it('should not report on excepted unnamed unassigned function expressions', function() {
             assert(checker.checkString('it(function (){});').isEmpty());
             assert(checker.checkString('it.skip(function () {});').isEmpty());
             assert(checker.checkString('x.y.z(function () {});').isEmpty());
@@ -76,7 +76,7 @@ describe('rules/require-named-unassigned-functions', function() {
             assert(checker.checkString('x[0].z(function () {});').isEmpty());
         });
 
-        it('should not report on excepted unnamed using other notation', function() {
+        it('should not report on excepted unnamed unassigned using bracket notation', function() {
             assert(checker.checkString('it[\'skip\'](function () {});').isEmpty());
         });
 
