@@ -36,7 +36,7 @@ describe('rules/require-named-inline-functions', function() {
         });
     });
 
-    describe.skip('option value allExcept', function() {
+    describe('option value allExcept', function() {
         beforeEach(function() {
             checker.configure({
                 requireNamedInlineFunctions: {
@@ -64,7 +64,7 @@ describe('rules/require-named-inline-functions', function() {
             assert(checker.checkString('var x = function named(){};').isEmpty());
         });
 
-        // TODO: How to handle `forEach`?
+        // TODO: How to handle `forEach`? (maybe as a method option type)
         it('should not report on excepted unnamed function expressions', function() {
             assert(checker.checkString('it(function (){});').isEmpty());
             assert(checker.checkString('it.skip(function () {});').isEmpty());
