@@ -36,12 +36,11 @@ describe('rules/require-named-inline-functions', function() {
         });
     });
 
-    describe('option values exceptFunction and exceptMethod', function() {
+    describe('option value allExcept', function() {
         beforeEach(function() {
             checker.configure({
                 requireNamedInlineFunctions: {
-                    exceptFunction: ['it', 'it.skip', 'x.y.z', 'x[1]', 'x[0].z'],
-                    exceptMethod: ['forEach']
+                    allExcept: ['it', 'it.skip', 'x.y.z', 'x[1]', 'x[0].z']
                 }
             });
         });
