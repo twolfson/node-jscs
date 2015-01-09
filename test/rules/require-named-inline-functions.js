@@ -36,17 +36,18 @@ describe('rules/require-named-inline-functions', function() {
         });
     });
 
-    describe('option value allExcept', function() {
+    describe('option values exceptFunction and exceptMethod', function() {
         beforeEach(function() {
             checker.configure({
                 requireNamedInlineFunctions: {
-                    allExcept: ['it', 'it.skip', 'x.y.z', 'x[1]', 'x[0].z']
+                    exceptFunction: ['it', 'it.skip', 'x.y.z', 'x[1]', 'x[0].z'],
+                    exceptMethod: ['forEach']
                 }
             });
         });
 
         it('should report on unnamed inline function declarations', function() {
-            // assert(checker.checkString('$("hi").click(function(){});').getErrorCount() === 1);
+            assert(checker.checkString('$("hi").click(function(){});').getErrorCount() === 1);
         });
 
         it('should not report named inline function expressions by left-hand assignment', function() {
