@@ -1,7 +1,7 @@
 var Checker = require('../../lib/checker');
 var assert = require('assert');
 
-describe('rules/require-stack-named-functions', function() {
+describe('rules/require-named-inline-functions', function() {
     var checker;
 
     beforeEach(function() {
@@ -16,11 +16,11 @@ describe('rules/require-stack-named-functions', function() {
             });
         });
 
-        it('should report on non-stack-named function declarations', function() {
+        it('should report on unnamed inline function declarations', function() {
             assert(checker.checkString('$("hi").click(function(){});').getErrorCount() === 1);
         });
 
-        it('should not report on stack-named function expressions by left-hand assignment', function() {
+        it('should not report named inline function expressions by left-hand assignment', function() {
             assert(checker.checkString('var x = function(){};').isEmpty());
             assert(checker.checkString('var foo = {bar: function() {}};').isEmpty());
             assert(checker.checkString('foo.bar = function() {};').isEmpty());
