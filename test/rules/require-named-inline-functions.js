@@ -40,7 +40,7 @@ describe('rules/require-named-inline-functions', function() {
         beforeEach(function() {
             checker.configure({
                 requireNamedInlineFunctions: {
-                    allExcept: ['it', 'it.skip']
+                    allExcept: ['it', 'it.skip', 'x.y.z', 'x[1]', 'x[0].z']
                 }
             });
         });
@@ -66,10 +66,11 @@ describe('rules/require-named-inline-functions', function() {
 
         // TODO: How to handle `forEach`? (maybe as a method option type)
         it.only('should not report on excepted unnamed function expressions', function() {
-            assert(checker.checkString('it(function (){});').isEmpty());
+            // assert(checker.checkString('it(function (){});').isEmpty());
             // assert(checker.checkString('it.skip(function () {});').isEmpty());
             // assert(checker.checkString('x.y.z(function () {});').isEmpty());
-            // assert(checker.checkString('x[0]z(function () {});').isEmpty());
+            assert(checker.checkString('x[1](function () {});').isEmpty());
+            assert(checker.checkString('x[0].z(function () {});').isEmpty());
         });
 
         it.skip('should not report on excepted unnamed using other notation', function() {
