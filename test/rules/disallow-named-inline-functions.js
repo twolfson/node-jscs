@@ -12,7 +12,7 @@ describe('rules/disallow-named-inline-functions', function() {
     describe('option value true', function() {
         beforeEach(function() {
             checker.configure({
-                requireNamedInlineFunctions: true
+                disallowNamedInlineFunctions: true
             });
         });
 
@@ -30,9 +30,14 @@ describe('rules/disallow-named-inline-functions', function() {
             assert(checker.checkString('function named(){};').isEmpty());
         });
 
-        it('should report on named function expressions', function() {
+        it('should report on named inline function expressions', function() {
             assert(checker.checkString('$("hi").click(function named(){});').getErrorCount() === 1);
-            assert(checker.checkString('var x = function named(){};').getErrorCount() === 1);
+        });
+
+        it('should not report on named inline function expressions', function() {
+            assert(checker.checkString('var x = function named(){};').isEmpty());
+            assert(checker.checkString('var foo = {bar: function named() {}};').isEmpty());
+            assert(checker.checkString('foo.bar = function named() {};').isEmpty());
         });
     });
 });
