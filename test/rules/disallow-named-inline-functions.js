@@ -20,21 +20,18 @@ describe('rules/disallow-named-inline-functions', function() {
             assert(checker.checkString('$("hi").click(function(){});').isEmpty());
         });
 
-        it('should not report inline function expressions named by left-hand assignment', function() {
-            assert(checker.checkString('var x = function(){};').isEmpty());
-            assert(checker.checkString('var foo = {bar: function() {}};').isEmpty());
-            assert(checker.checkString('foo.bar = function() {};').isEmpty());
+        it('should report on named inline function expressions', function() {
+            assert(checker.checkString('$("hi").click(function named(){});').getErrorCount() === 1);
         });
 
         it('should not report on named function declarations', function() {
             assert(checker.checkString('function named(){};').isEmpty());
         });
 
-        it('should report on named inline function expressions', function() {
-            assert(checker.checkString('$("hi").click(function named(){});').getErrorCount() === 1);
-        });
-
-        it('should not report on double named inline function expressions', function() {
+        it('should not report on function expressions in assignments', function() {
+            assert(checker.checkString('var x = function(){};').isEmpty());
+            assert(checker.checkString('var foo = {bar: function() {}};').isEmpty());
+            assert(checker.checkString('foo.bar = function() {};').isEmpty());
             assert(checker.checkString('var x = function named(){};').isEmpty());
             assert(checker.checkString('var foo = {bar: function named() {}};').isEmpty());
             assert(checker.checkString('foo.bar = function named() {};').isEmpty());
