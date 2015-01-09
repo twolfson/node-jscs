@@ -6,11 +6,12 @@ var sinon = require('sinon');
 
 describe('modules/js-file', function() {
 
-    function createJsFile(sources) {
+    function createJsFile(sources, options) {
         return new JsFile(
             'example.js',
             sources,
-            esprima.parse(sources, {loc: true, range: true, comment: true, tokens: true})
+            esprima.parse(sources, {loc: true, range: true, comment: true, tokens: true}),
+            options || {}
         );
     }
 
@@ -204,8 +205,20 @@ describe('modules/js-file', function() {
             assert.equal(createJsFile('function foo(a,b) {}').getNodeByRange(16).type, 'FunctionDeclaration');
         });
 
+        it('should get node by range for identifier', function() {
+            assert.equal(createJsFile('foo(a,b)').getNodeByRange(0).type, 'Identifier');
+        });
+
         it('should get node by range for function expression', function() {
             assert.equal(createJsFile('foo(a,b)').getNodeByRange(7).type, 'CallExpression');
+        });
+
+        it('should get node by range for "if" statement', function() {
+            assert.equal(createJsFile('if(true){foo(a,b)}').getNodeByRange(0).type, 'IfStatement');
+        });
+
+        it('should get node by range for identifier inside "if" statement', function() {
+            assert.equal(createJsFile('if(true){foo(a,b)}').getNodeByRange(9).type, 'Identifier');
         });
 
         it('should get node by range for function expression inside "if" statement', function() {
@@ -674,6 +687,44 @@ describe('modules/js-file', function() {
             var sources = 'var x = 1;\nvar y = 2;';
             var file = createJsFile(sources);
             assert.equal(file.getSource(), sources);
+        });
+    });
+
+    describe('getDialect', function() {
+        it('should return es5 with no options specified', function() {
+            var sources = 'var x = 1;\nvar y = 2;';
+            var file = createJsFile(sources);
+            assert.equal(file.getDialect(), 'es5');
+        });
+
+        it('should return es6 when es6 is specified as true', function() {
+            var sources = 'var x = 1;\nvar y = 2;';
+            var file = createJsFile(sources, {es6: true});
+            assert.equal(file.getDialect(), 'es6');
+        });
+
+        it('should return es5 when es6 is specified as false', function() {
+            var sources = 'var x = 1;\nvar y = 2;';
+            var file = createJsFile(sources, {es6: false});
+            assert.equal(file.getDialect(), 'es5');
+        });
+
+        it('should return es3 when es3 is specified as true', function() {
+            var sources = 'var x = 1;\nvar y = 2;';
+            var file = createJsFile(sources, {es3: true});
+            assert.equal(file.getDialect(), 'es3');
+        });
+
+        it('should return es5 when es3 is specified as false', function() {
+            var sources = 'var x = 1;\nvar y = 2;';
+            var file = createJsFile(sources, {es3: false});
+            assert.equal(file.getDialect(), 'es5');
+        });
+
+        it('should return es6 when es3 and es6 are both specified as true', function() {
+            var sources = 'var x = 1;\nvar y = 2;';
+            var file = createJsFile(sources, {es3: true, es6: true});
+            assert.equal(file.getDialect(), 'es6');
         });
     });
 

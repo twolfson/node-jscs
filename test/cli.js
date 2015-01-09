@@ -1,12 +1,11 @@
-var hooker = require('hooker');
+var path = require('path');
+
 var sinon = require('sinon');
-var glob = require('glob');
 var assert = require('assert');
-var Vow = require('vow');
+
+var glob = require('glob');
 var hasAnsi = require('has-ansi');
 var rewire = require('rewire');
-
-var path = require('path');
 
 var cli = rewire('../lib/cli');
 var startingDir = process.cwd();
@@ -41,7 +40,13 @@ describe('modules/cli', function() {
 
     function assertNoCliErrors(vow) {
         return vow.promise.always(function() {
-            assert(console.log.getCall(0).args[0] === 'No code style errors found.');
+            var stdout = process.stdout.write.getCall(0) ? process.stdout.write.getCall(0).args[0] : '';
+            var stderr = process.stderr.write.getCall(0) ? process.stderr.write.getCall(0).args[0] : '';
+            assert.equal(
+                stdout,
+                'No code style errors found.\n',
+                stderr
+            );
             rAfter();
         });
     }
@@ -73,33 +78,29 @@ describe('modules/cli', function() {
         });
     });
 
-    it('should correctly exit if no files specified', function() {
-        hooker.hook(console, 'error', {
-            pre: function(message) {
-                assert.equal(message, 'No input files specified. Try option --help for usage information.');
+    it('should correctly exit if no files specified', function(done) {
+        sinon.stub(console, 'error', function(message) {
+            assert.equal(message, 'No input files specified. Try option --help for usage information.');
 
-                return hooker.preempt();
-            },
-            once: true
+            done();
         });
 
         cli({
             args: []
         });
+
+        console.error.restore();
     });
 
-    it('should exit if no custom config is found', function() {
-        hooker.hook(console, 'error', {
-            pre: function(arg1, arg2, arg3) {
-                assert.equal(arg1, 'Configuration source');
-                assert.equal(arg2, 'config.js');
-                assert.equal(arg3, 'was not found.');
+    it('should exit if no custom config is found', function(done) {
+        sinon.stub(console, 'error', function(arg1, arg2, arg3) {
+            assert.equal(arg1, 'Configuration source');
+            assert.equal(arg2, 'config.js');
+            assert.equal(arg3, 'was not found.');
 
-                process.chdir('../');
+            process.chdir('../');
 
-                return hooker.preempt();
-            },
-            once: true
+            done();
         });
 
         process.chdir('./test/');
@@ -109,6 +110,8 @@ describe('modules/cli', function() {
         });
 
         assert(typeof result === 'object');
+
+        console.error.restore();
     });
 
     it('should set presets', function() {
@@ -271,7 +274,7 @@ describe('modules/cli', function() {
         it('should not fail with additional args supplied: `cat myEmptyFile.js | jscs -n`', function() {
             var result = cli({
                 args: [],
-                'no-colors': true,
+                colors: true,
                 config: 'test/data/cli/cli.json'
             });
 
@@ -313,27 +316,33 @@ describe('modules/cli', function() {
     });
 
     describe('reporter option', function() {
-        it('should set implicitly set checkstyle reporter', function() {
+        it('should implicitly set console reporter', function() {
             var result = cli({
                 args: ['test/data/cli/error.js'],
+                colors: true,
                 config: 'test/data/cli/cli.json'
             });
 
             return result.promise.always(function() {
-                assert(path.basename(result.reporter), 'checkstyle');
+                assert.equal(path.basename(result.reporter), 'console');
                 rAfter();
             });
         });
 
-        it('should set implicitly set text reporter', function() {
+        it('should implicitly set text reporter', function() {
+            var old = cli.__get__('supportsColor');
+
+            cli.__set__('supportsColor', false);
+
             var result = cli({
                 args: ['test/data/cli/error.js'],
-                'no-colors': true,
+                colors: true,
                 config: 'test/data/cli/cli.json'
             });
 
             return result.promise.always(function() {
-                assert(path.basename(result.reporter), 'text.js');
+                assert.equal(path.basename(result.reporter), 'text');
+                cli.__set__('supportsColor', old);
                 rAfter();
             });
         });
@@ -348,7 +357,7 @@ describe('modules/cli', function() {
             });
 
             return result.promise.always(function() {
-                assert(path.basename(result.reporter), 'junit.js');
+                assert.equal(path.basename(result.reporter), 'junit.js');
                 rAfter();
             });
         });
@@ -361,7 +370,7 @@ describe('modules/cli', function() {
             });
 
             return result.promise.always(function() {
-                assert(path.basename(result.reporter), 'junit.js');
+                assert.equal(path.basename(result.reporter), 'junit.js');
                 rAfter();
             });
         });
@@ -374,7 +383,7 @@ describe('modules/cli', function() {
             });
 
             return result.promise.always(function() {
-                assert(path.basename(result.reporter), 'text.js');
+                assert.equal(path.basename(result.reporter), 'text');
                 rAfter();
             });
         });
@@ -557,6 +566,24 @@ describe('modules/cli', function() {
                 rAfter();
             });
         });
+
+        it('should display a message for input via stdin', function() {
+            process.stdin.isTTY = false;
+
+            var result = cli({
+                args: [],
+                config: 'test/data/cli/maxErrors.json',
+                maxErrors: '1'
+            });
+
+            process.stdin.emit('data', 'with (x) { y++; }\n');
+            process.stdin.emit('end');
+
+            return result.promise.always(function() {
+                assert(console.log.getCall(2).args[0].indexOf('Increase `maxErrors` configuration option') !== -1);
+                rAfter();
+            });
+        });
     });
 
     describe('errorFilter option', function() {
@@ -578,7 +605,7 @@ describe('modules/cli', function() {
 
         it('should accept a relative path to a filter module', function() {
             return assertNoCliErrors(cli({
-                errorFilter: './test/data/error-filter.js',
+                errorFilter: '../error-filter.js',
                 args: ['test/data/cli/error.js'],
                 config: 'test/data/cli/cli.json'
             }));
@@ -624,6 +651,15 @@ describe('modules/cli', function() {
                 args: ['test/data/cli/esnext.js'],
                 esprima: 'esprima-harmony-jscs',
                 config: 'test/data/cli/cli.json'
+            }));
+        });
+    });
+
+    describe('additionalRules', function() {
+        it('should correctly handle additionalRules paths', function() {
+            return assertNoCliErrors(cli({
+                args: ['test/data/cli/success.js'],
+                config: 'test/data/configs/additionalRules/.jscsrc'
             }));
         });
     });
