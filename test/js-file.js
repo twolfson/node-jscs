@@ -19,7 +19,8 @@ describe('modules/js-file', function() {
         return new JsFile(
             'example.js',
             sources,
-            harmonyEsprima.parse(sources, {loc: true, range: true, comment: true, tokens: true})
+            harmonyEsprima.parse(sources, {sourceType: 'module', loc: true, range: true, comment: true, tokens: true}),
+            { es6: true }
         );
     }
 
@@ -198,6 +199,21 @@ describe('modules/js-file', function() {
             createJsFile('test.toString').iterateTokenByValue('(', spy);
             assert(!spy.calledOnce);
         });
+
+        it('should not have duplicate tokens in es6 export default statements', function() {
+            var spy = sinon.spy();
+            createHarmonyJsFile('export default function() {}').iterateTokenByValue('(', spy);
+            assert(spy.calledOnce);
+        });
+
+        it('should not have duplicate tokens in es6 export default statements', function() {
+            var spy = sinon.spy();
+            createHarmonyJsFile('export default function init() {\n' +
+            '  window.addEventListener(\'fb-flo-reload\', function(ev) {\n' +
+            '  });\n' +
+            '}').iterateTokenByValue('(', spy);
+            assert(spy.calledThrice);
+        });
     });
 
     describe('getNodeByRange', function() {
@@ -245,7 +261,11 @@ describe('modules/js-file', function() {
     });
 
     describe('findNextToken', function() {
-        var file = createJsFile('switch(varName){case"yes":a++;break;}');
+        var file;
+
+        beforeEach(function() {
+            file = createJsFile('switch(varName){case"yes":a++;break;}');
+        });
 
         it('should find the first next token when only the type is specified', function() {
             var switchToken = file.getTokens()[0];
@@ -325,8 +345,13 @@ describe('modules/js-file', function() {
     });
 
     describe('findPrevToken', function() {
-        var file = createJsFile('switch(varName){case"yes":a++;break;}');
-        var tokens = file.getTokens();
+        var file;
+        var tokens;
+
+        beforeEach(function() {
+            file = createJsFile('switch(varName){case"yes":a++;break;}');
+            tokens = file.getTokens();
+        });
 
         it('should find the first previous token when only the type is specified', function() {
             var lastToken = tokens[tokens.length - 1];
@@ -667,6 +692,73 @@ describe('modules/js-file', function() {
         });
     });
 
+    describe('getCommentAfterToken', function() {
+        it('should return comment after specified token', function() {
+            var file = createJsFile('/* a */{  y++  ;  /* x */ x++; // y\n }/* last */');
+
+            var token = file.getTokenByRangeStart(15);
+            var comment = file.getCommentAfterToken(token);
+            assert.equal(comment.value, ' x ');
+
+            token = file.getTokenByRangeStart(29);
+            comment = file.getCommentAfterToken(token);
+            assert.equal(comment.value, ' y');
+
+            token = file.getTokenByRangeStart(37);
+            comment = file.getCommentAfterToken(token);
+            assert.equal(comment.value, ' last ');
+        });
+
+        it('should return undefined if there is no comment after token', function() {
+            var file = createJsFile('/*x*/true');
+
+            var token = file.getTokenByRangeStart(5);
+            var comment = file.getCommentAfterToken(token);
+            assert(comment === undefined);
+        });
+
+        it('should not fail if there are no tokens', function() {
+            var file = createJsFile('/*x*/');
+
+            var token = file.getTokenByRangeStart(0);
+            assert(token === undefined);
+        });
+    });
+
+    describe('getCommentBeforeToken', function() {
+        it('should return comment before specified token', function() {
+            var file = createJsFile('/* a */{  y++  ;  /* x */ x++; // y\n }/* last */');
+
+            var token = file.getTokenByRangeStart(7);
+            var comment = file.getCommentBeforeToken(token);
+            assert.equal(comment.value, ' a ');
+
+            token = file.getTokenByRangeStart(26);
+            comment = file.getCommentBeforeToken(token);
+            assert.equal(comment.value, ' x ');
+
+            token = file.getTokenByRangeStart(37);
+            comment = file.getCommentBeforeToken(token);
+            assert.equal(comment.value, ' y');
+        });
+
+        it('should return single comment before last token', function() {
+            var file = createJsFile('{\n//\n}');
+
+            var tokens = file.getTokens();
+            var comment = file.getCommentBeforeToken(tokens[tokens.length - 1]);
+            assert.equal(comment.value, '');
+        });
+
+        it('should return undefined if there is no comment before token', function() {
+            var file = createJsFile('true');
+
+            var token = file.getTokenByRangeStart(0);
+            var comment = file.getCommentBeforeToken(token);
+            assert(comment === undefined);
+        });
+    });
+
     describe('getTree', function() {
         it('should return specified esprima-tree', function() {
             var sources = 'var x;';
@@ -691,38 +783,34 @@ describe('modules/js-file', function() {
     });
 
     describe('getDialect', function() {
+        var sources = 'var x = 1;\nvar y = 2;';
+
         it('should return es5 with no options specified', function() {
-            var sources = 'var x = 1;\nvar y = 2;';
             var file = createJsFile(sources);
             assert.equal(file.getDialect(), 'es5');
         });
 
         it('should return es6 when es6 is specified as true', function() {
-            var sources = 'var x = 1;\nvar y = 2;';
             var file = createJsFile(sources, {es6: true});
             assert.equal(file.getDialect(), 'es6');
         });
 
         it('should return es5 when es6 is specified as false', function() {
-            var sources = 'var x = 1;\nvar y = 2;';
             var file = createJsFile(sources, {es6: false});
             assert.equal(file.getDialect(), 'es5');
         });
 
         it('should return es3 when es3 is specified as true', function() {
-            var sources = 'var x = 1;\nvar y = 2;';
             var file = createJsFile(sources, {es3: true});
             assert.equal(file.getDialect(), 'es3');
         });
 
         it('should return es5 when es3 is specified as false', function() {
-            var sources = 'var x = 1;\nvar y = 2;';
             var file = createJsFile(sources, {es3: false});
             assert.equal(file.getDialect(), 'es5');
         });
 
         it('should return es6 when es3 and es6 are both specified as true', function() {
-            var sources = 'var x = 1;\nvar y = 2;';
             var file = createJsFile(sources, {es3: true, es6: true});
             assert.equal(file.getDialect(), 'es6');
         });
@@ -747,6 +835,59 @@ describe('modules/js-file', function() {
                 assert.equal(file.getLines()[0], sources[0]);
                 assert.equal(file.getLines()[1], sources[1]);
             });
+        });
+    });
+
+    describe('getLinesWithCommentsRemoved', function() {
+        it('should strip line comments', function() {
+            var source = 'a++; //comment\n//comment';
+            var file = createJsFile(source);
+            var lines = file.getLinesWithCommentsRemoved();
+            assert.equal(lines.length, 2);
+            assert.equal(lines[0], 'a++; ');
+            assert.equal(lines[1], '');
+        });
+
+        it('should strip single-line block comments', function() {
+            var source = 'a++;/*comment*/b++;\n/*comment*/';
+            var file = createJsFile(source);
+            var lines = file.getLinesWithCommentsRemoved();
+            assert.equal(lines.length, 2);
+            assert.equal(lines[0], 'a++;b++;');
+            assert.equal(lines[1], '');
+        });
+
+        it('should strip multi-line block comments', function() {
+            var source = 'a++;/*comment\nmore comment\nmore comment*/';
+            var file = createJsFile(source);
+            var lines = file.getLinesWithCommentsRemoved();
+            assert.equal(lines.length, 3);
+            assert.equal(lines[0], 'a++;');
+            assert.equal(lines[1], '');
+            assert.equal(lines[2], '');
+        });
+
+        it('should strip an multi-line block comments with trailing tokens', function() {
+            var source = 'a++;/*comment\nmore comment\nmore comment*/b++;';
+            var file = createJsFile(source);
+            var lines = file.getLinesWithCommentsRemoved();
+            assert.equal(lines.length, 3);
+            assert.equal(lines[0], 'a++;');
+            assert.equal(lines[1], '');
+            assert.equal(lines[2], 'b++;');
+        });
+
+        it('should add an error when on multi-line block comments with trailing tokens', function() {
+            var source = 'a++;/*comment\nmore comment\nmore comment*/b++;';
+            var file = createJsFile(source);
+            var errors = { add: sinon.spy() };
+            var lines = file.getLinesWithCommentsRemoved(errors);
+            assert(errors.add.called);
+            assert(errors.add.calledWith(
+                'Multiline comments should not have tokens on its ending line',
+                3,
+                14
+            ));
         });
     });
 

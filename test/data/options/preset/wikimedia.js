@@ -73,8 +73,8 @@
 			ret = {};
 
 		for ( i = 0, len = items.length; i < len; i++ ) {
-			if ( items[i] !== null ) {
-				item = items[i];
+			if ( items[ i ] !== null ) {
+				item = items[ i ];
 				break;
 			}
 		}
@@ -84,8 +84,9 @@
 		}
 
 		for ( key in item ) {
+			// requireSpaceBetweenArguments
 			if ( hasOwn.call( item, key ) ) {
-				ret[key] = new APP.Example( item[key] );
+				ret[ key ] = new APP.Example( item[ key ] );
 			}
 		}
 

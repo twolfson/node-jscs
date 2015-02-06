@@ -10,17 +10,25 @@ var rewire = require('rewire');
 var cli = rewire('../lib/cli');
 var startingDir = process.cwd();
 
+var ConfigGenerator = rewire('../lib/config/generator');
+var Vow = require('vow');
+
 describe('modules/cli', function() {
+    var oldTTY;
+
     before(function() {
         cli.__set__('exit', function() {});
     });
 
     beforeEach(function() {
+        oldTTY = process.stdin.isTTY;
+
         sinon.stub(process.stdout, 'write');
         sinon.stub(process.stderr, 'write');
     });
 
     afterEach(function() {
+        process.stdin.isTTY = oldTTY;
         process.chdir(startingDir);
 
         // If stdin rewrites were not used, restore them here
@@ -188,6 +196,19 @@ describe('modules/cli', function() {
         });
     });
 
+    it('should bail out if no input files are specified for the auto-configure option', function() {
+        var result = cli({
+            args: [],
+            // Commander defaults to a boolean if no args are supplied to the option
+            autoConfigure: true
+        });
+
+        return result.promise.fail(function(status) {
+            assert(status);
+            rAfter();
+        });
+    });
+
     describe('verbose option', function() {
         beforeEach(function() {
             sinon.spy(console, 'log');
@@ -211,6 +232,7 @@ describe('modules/cli', function() {
         it('should display rule names in error output with verbose option', function() {
             var result = cli({
                 verbose: true,
+                colors: false,
                 args: ['test/data/cli/error.js'],
                 config: 'test/data/cli/cli.json'
             });
@@ -325,24 +347,6 @@ describe('modules/cli', function() {
 
             return result.promise.always(function() {
                 assert.equal(path.basename(result.reporter), 'console');
-                rAfter();
-            });
-        });
-
-        it('should implicitly set text reporter', function() {
-            var old = cli.__get__('supportsColor');
-
-            cli.__set__('supportsColor', false);
-
-            var result = cli({
-                args: ['test/data/cli/error.js'],
-                colors: true,
-                config: 'test/data/cli/cli.json'
-            });
-
-            return result.promise.always(function() {
-                assert.equal(path.basename(result.reporter), 'text');
-                cli.__set__('supportsColor', old);
                 rAfter();
             });
         });
@@ -661,6 +665,54 @@ describe('modules/cli', function() {
                 args: ['test/data/cli/success.js'],
                 config: 'test/data/configs/additionalRules/.jscsrc'
             }));
+        });
+    });
+
+    describe('auto-configure option', function() {
+        var deferred;
+        var GeneratorMock;
+
+        beforeEach(function() {
+            deferred = Vow.defer();
+            GeneratorMock = function() {
+                return {
+                    generate: function() {
+                        return deferred.promise();
+                    }
+                };
+            };
+
+            cli.__set__('ConfigGenerator', GeneratorMock);
+        });
+
+        it('should handle the configure option', function() {
+            deferred.resolve();
+
+            var result = cli({
+                args: [],
+                autoConfigure: __dirname + '/data/error-filter.js'
+            });
+
+            return result.promise.then(function(status) {
+                assert.ok(!status);
+            });
+        });
+
+        it('should print the error message on generation failure', function() {
+            var message = 'generation failed';
+
+            deferred.reject(message);
+
+            var result = cli({
+                args: [],
+                autoConfigure: __dirname + '/data/error-filter.js'
+            });
+
+            return result.promise.then(null, function(status) {
+                assert.ok(status);
+                assert.ok(process.stderr.write.getCall(0).args[0].indexOf(message));
+                rAfter();
+            });
         });
     });
 });

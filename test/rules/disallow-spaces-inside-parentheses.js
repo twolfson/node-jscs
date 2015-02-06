@@ -9,6 +9,20 @@ describe('rules/disallow-spaces-inside-parentheses', function() {
         checker.registerDefaultRules();
     });
 
+    describe('invalid options', function() {
+        it('should throw when given an number', function() {
+            assert.throws(function() {
+                checker.configure({ disallowSpacesInsideParentheses: 2 });
+            });
+        });
+
+        it('should throw when only is not specified in an object', function() {
+            assert.throws(function() {
+                checker.configure({ disallowSpacesInsideParentheses: {} });
+            });
+        });
+    });
+
     describe('true', function() {
         beforeEach(function() {
             checker.configure({ disallowSpacesInsideParentheses: true });
@@ -47,6 +61,23 @@ describe('rules/disallow-spaces-inside-parentheses', function() {
         it('should not report when a comment is present', function() {
             assert(checker.checkString('function x(el/* comment */, i/* comment */) {  }').isEmpty());
             assert(checker.checkString('function x(el /* comment */, i /* comment */) {  }').isEmpty());
+        });
+    });
+
+    describe('es6', function() {
+        beforeEach(function() {
+            checker.configure({
+                esnext: true,
+                disallowSpacesInsideParentheses: true
+            });
+        });
+
+        it('should not report with no spaces around a regex', function() {
+            assert(checker.checkString('expect(a).toMatch(/home/);').isEmpty());
+        });
+
+        it('should not report with no spaces in an export default statement', function() {
+            assert(checker.checkString('export default function() {}').isEmpty());
         });
     });
 

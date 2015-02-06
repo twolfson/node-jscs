@@ -49,6 +49,16 @@ cat myfile.js | jscs
 
 ## CLI
 
+### `--auto-configure` (Experimental)
+Presents a walkthrough that allows you to generate a JSCS configuration by
+choosing a preset and handling violated rules.
+
+```
+jscs --auto-configure path
+```
+
+`path` can be a file or directory to check the presets against
+
 ### `--config`
 Allows to define path to the config file.
 ```
@@ -212,6 +222,20 @@ Value: `true`
 
 ```js
 "esnext": true
+```
+
+### esprimaOptions
+
+Custom `options` to be passed to `esprima.parse(code, options)`
+
+Type: `Object`
+
+Default: `{ "tolerant": true }`
+
+#### Example
+
+```js
+"esprimaOptions": { "tolerant": true }
 ```
 
 ### errorFilter

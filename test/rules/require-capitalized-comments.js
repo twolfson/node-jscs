@@ -22,8 +22,8 @@ describe('rules/require-capitalized-comments', function() {
         assert(checker.checkString('/**\n * invalid\n*/').getErrorCount() === 1);
         assert(checker.checkString('//\n// invalid\n//').getErrorCount() === 1);
         assert(checker.checkString('/*\ninvalid\n*/').getErrorCount() === 1);
-        assert(checker.checkString('//über').getErrorCount() === 1);
-        assert(checker.checkString('//π').getErrorCount() === 1);
+        assert(checker.checkString('//\xFCber').getErrorCount() === 1);
+        assert(checker.checkString('//\u03C0').getErrorCount() === 1);
     });
 
     it('should not report an uppercase start of a comment', function() {
@@ -32,8 +32,8 @@ describe('rules/require-capitalized-comments', function() {
         assertEmpty('/** Valid */');
         assertEmpty('//\n// Valid\n//');
         assertEmpty('/*\nValid\n*/');
-        assertEmpty('//Über');
-        assertEmpty('//∏');
+        assertEmpty('//\xDCber');
+        assertEmpty('//\u03A0');
     });
 
     it('should not report on comments that start with a non-alphabetical character', function() {
@@ -42,6 +42,10 @@ describe('rules/require-capitalized-comments', function() {
         assert(checker.checkString('/**123*/').isEmpty());
         assert(checker.checkString('/**\n @todo: foobar\n */').isEmpty());
         assert(checker.checkString('/** 123*/').isEmpty());
+        assert(checker.checkString([
+            '// \xDCber',
+            '// diese Funktion'
+        ].join('\n')).isEmpty());
     });
 
     it('should not report on multiple uppercase lines in a "textblock"', function() {
@@ -93,10 +97,5 @@ describe('rules/require-capitalized-comments', function() {
             '// and has one or more non-capitalized lines',
             '// afterwards'
         ].join('\n'));
-
-        assert(checker.checkString([
-            '// Über',
-            '// diese Funktion'
-        ].join('\n')).isEmpty());
     });
 });
