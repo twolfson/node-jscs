@@ -87,7 +87,7 @@ describe('rules/require-named-unassigned-functions', function() {
     });
 
     describe('option value allExcept bad array', function() {
-        it('raises an assertion error', function () {
+        it('raises an assertion error', function() {
             try {
                 checker.configure({
                     requireNamedUnassignedFunctions: {
