@@ -85,4 +85,19 @@ describe('rules/require-named-unassigned-functions', function() {
             assert(checker.checkString('(new Item()).forEach(function () {});').getErrorCount() === 1);
         });
     });
+
+    describe('option value allExcept bad array', function() {
+        it('raises an assertion error', function () {
+            try {
+                checker.configure({
+                    requireNamedUnassignedFunctions: {
+                        allExcept: [{unexpected: 'content'}]
+                    }
+                });
+            } catch (err) {
+                return;
+            }
+            assert.fail('`checker.configure` should have raised an error for an invalid type');
+        });
+    });
 });
