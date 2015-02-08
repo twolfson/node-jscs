@@ -91,7 +91,7 @@ describe('rules/require-named-unassigned-functions', function() {
             try {
                 checker.configure({
                     requireNamedUnassignedFunctions: {
-                        allExcept: [{unexpected: 'content'}]
+                        allExcept: 'unexpected content'
                     }
                 });
             } catch (err) {
