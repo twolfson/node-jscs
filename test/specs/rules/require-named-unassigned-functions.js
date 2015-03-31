@@ -1,7 +1,7 @@
 var Checker = require('../../../lib/checker');
 var assert = require('assert');
 
-describe('rules/require-named-unassigned-functions', function() {
+describe.only('rules/require-named-unassigned-functions', function() {
     var checker;
 
     beforeEach(function() {
