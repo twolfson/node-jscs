@@ -33,7 +33,7 @@ function getElementsByClassName(className) {
         var array,                // array of class names
             ncn = node.className; // the node's classname
 
-// validateQuoteMarks
+        // validateQuoteMarks
 
         if (ncn && ncn.split(' ').indexOf(className) >= 0) {
             results.push(node);
@@ -48,7 +48,7 @@ div.onclick = function (e) {
 };
 
 obj = {
-    method: function () {
+    method: function () { // requireSpaceBeforeObjectValues
         return this.datum; // requireDotNotation
     },
     datum: 0
