@@ -26,9 +26,9 @@ describe('rules/require-multiple-var-decl', function() {
         it('should not report separated var decl', function() {
             assert(checker.checkString('var x; x++; var y;').isEmpty());
         });
-        it.only('TODO: figure out reason (#916, #1163)', function() {
-            // assert(checker.checkString('switch (1) { case 1: var x; }').isEmpty());
-            assert(checker.checkString('var x;').isEmpty());
+        it('TODO: figure out reason (#916, #1163)', function() {
+            assert(checker.checkString('switch (1) { case 1: var x; }').isEmpty());
+            // assert(checker.checkString('var x;').isEmpty());
         });
         // TODO: Add a test for multiple vars inside of `switch`?
     });
