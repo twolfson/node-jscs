@@ -29,7 +29,7 @@ describe('rules/require-multiple-var-decl', function() {
         it('supports var decl not contained by a parent with a `body` property (#916, #1163)', function() {
             assert(checker.checkString('switch (1) { case 1: var x; }').isEmpty());
         });
-        it.only('should report consecutive var decl not contained by a parent with a `body` property', function() {
+        it('should report consecutive var decl not contained by a parent with a `body` property', function() {
             assert(checker.checkString('switch (1) { case 1: var x; var y; }').getErrorCount() === 1);
         });
     });
