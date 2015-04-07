@@ -26,6 +26,9 @@ describe('rules/require-multiple-var-decl', function() {
         it('should not report separated var decl', function() {
             assert(checker.checkString('var x; x++; var y;').isEmpty());
         });
+        it('should not report separated var decl', function() {
+            assert(checker.checkString('var x; switch (x) { case 1: var y = 1; }').isEmpty());
+        });
     });
 
     describe('onevar', function() {
