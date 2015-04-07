@@ -27,7 +27,7 @@ describe('rules/require-multiple-var-decl', function() {
             assert(checker.checkString('var x; x++; var y;').isEmpty());
         });
         it.only('TODO: figure out reason (#916, #1163)', function() {
-            assert(checker.checkString('var x; switch (x) { case 1: var y = 1; }').isEmpty());
+            assert(checker.checkString('switch (true) { case 1: var y = 1; }').isEmpty());
         });
         // TODO: Add a test for multiple vars inside of `switch`?
     });
