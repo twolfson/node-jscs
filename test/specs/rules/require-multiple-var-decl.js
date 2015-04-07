@@ -7,7 +7,7 @@ var assert = require('assert');
 describe('rules/require-multiple-var-decl', function() {
     var checker;
 
-    describe('boolean', function() {
+    describe.only('boolean', function() {
         var checker;
         beforeEach(function() {
             checker = new Checker();
