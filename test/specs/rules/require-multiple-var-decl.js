@@ -7,7 +7,7 @@ var assert = require('assert');
 describe('rules/require-multiple-var-decl', function() {
     var checker;
 
-    describe.only('boolean', function() {
+    describe('boolean', function() {
         var checker;
         beforeEach(function() {
             checker = new Checker();
@@ -26,9 +26,10 @@ describe('rules/require-multiple-var-decl', function() {
         it('should not report separated var decl', function() {
             assert(checker.checkString('var x; x++; var y;').isEmpty());
         });
-        it('should not report separated var decl', function() {
+        it.only('TODO: figure out reason (#916, #1163)', function() {
             assert(checker.checkString('var x; switch (x) { case 1: var y = 1; }').isEmpty());
         });
+        // TODO: Add a test for multiple vars inside of `switch`?
     });
 
     describe('onevar', function() {
